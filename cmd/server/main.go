@@ -20,6 +20,13 @@ func main() {
 	defer connection.Close()
 	fmt.Println("Connected to RabbitMQ!")
 
+	// Make a new channel
+	mainChannel, err := connection.Channel()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer mainChannel.Close()
+
 	// wait for ctrl+c
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
