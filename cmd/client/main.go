@@ -92,6 +92,19 @@ func main() {
 				fmt.Println("usage: move <from> <to>")
 				return
 			}
+
+			gamestate.CommandMove(input)
+		} else if command == "status" {
+			gamestate.CommandStatus()
+		} else if command == "help" {
+			gamelogic.PrintClientHelp()
+		} else if command == "spam" {
+			fmt.Println("Spamming not allowed yet!")
+		} else if command == "quit" {
+			gamelogic.PrintQuit()
+			return
+		} else {
+			fmt.Println("Invalid command.")
 		}
 	}
 	// wait for ctrl+c
