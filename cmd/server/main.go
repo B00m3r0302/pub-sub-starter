@@ -46,6 +46,14 @@ func main() {
 		log.Println(err)
 	}
 
+	topicChannel, topicQueue, err := pubsub.DeclareAndBind(connection, routing.ExchangePerilTopic, routing.GameLogSlug, routing.LogsKey, 0)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	log.Printf("connected to queue: %v on channel: %v", topicQueue.Name, topicChannel)
+
 	if 1 == 1 {
 		input := gamelogic.GetInput()
 

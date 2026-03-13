@@ -41,7 +41,7 @@ func main() {
 
 	gamestate := gamelogic.NewGameState(username)
 
-	if 1 == 1 {
+	for {
 		input := gamelogic.GetInput()
 
 		unitTypes := []string{"infantry", "cavalry", "artillery"}
@@ -49,8 +49,13 @@ func main() {
 
 		found := false
 
+		if len(input) == 0 {
+			continue
+		}
+
 		command := input[0]
-		if command == "spawn" {
+		switch command {
+		case "spawn":
 			if len(input) != 3 {
 				fmt.Println("usage: spawn <type> <location>")
 				return
@@ -87,26 +92,27 @@ func main() {
 				log.Println(err)
 				return
 			}
-		} else if command == "move" {
+		case "move":
 			if len(input) != 3 {
 				fmt.Println("usage: move <from> <to>")
 				return
 			}
 
 			gamestate.CommandMove(input)
-		} else if command == "status" {
+		case "status":
 			gamestate.CommandStatus()
-		} else if command == "help" {
+		case "help":
 			gamelogic.PrintClientHelp()
-		} else if command == "spam" {
+		case "spam":
 			fmt.Println("Spamming not allowed yet!")
-		} else if command == "quit" {
+		case "quit":
 			gamelogic.PrintQuit()
 			return
-		} else {
+		default:
 			fmt.Println("Invalid command.")
 		}
 	}
+
 	// wait for ctrl+c
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
