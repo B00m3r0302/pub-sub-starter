@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -36,16 +35,6 @@ func main() {
 	}
 	defer mainChannel.Close()
 
-	pausedPlayingState, err := json.Marshal(routing.PlayingState{IsPaused: true})
-	if err != nil {
-		log.Println(err)
-	}
-
-	resumePlayingState, err := json.Marshal(routing.PlayingState{IsPaused: false})
-	if err != nil {
-		log.Println(err)
-	}
-
 	topicChannel, topicQueue, err := pubsub.DeclareAndBind(connection, routing.ExchangePerilTopic, routing.GameLogSlug, routing.LogsKey, 0)
 	if err != nil {
 		log.Println(err)
@@ -54,21 +43,21 @@ func main() {
 
 	log.Printf("connected to queue: %v on channel: %v", topicQueue.Name, topicChannel)
 
-	if 1 == 1 {
+	for {
 		input := gamelogic.GetInput()
 
 		command := input[0]
-
-		if command == "pause" {
+		switch command {
+		case "pause":
 			log.Println("Pausing game...")
-			err = pubsub.PublishJSON(mainChannel, routing.ExchangePerilDirect, routing.PauseKey, pausedPlayingState)
-		} else if command == "resume" {
+			err = pubsub.PublishJSON(mainChannel, routing.ExchangePerilDirect, routing.PauseKey, routing.PlayingState{IsPaused: true})
+		case "resume":
 			log.Println("Resuming game...")
-			err = pubsub.PublishJSON(mainChannel, routing.ExchangePerilDirect, routing.PauseKey, resumePlayingState)
-		} else if command == "quit" {
+			err = pubsub.PublishJSON(mainChannel, routing.ExchangePerilDirect, routing.PauseKey, routing.PlayingState{IsPaused: false})
+		case "quit":
 			log.Println("Quitting...")
 			return
-		} else {
+		default:
 			log.Println("Invalid command.")
 		}
 	}

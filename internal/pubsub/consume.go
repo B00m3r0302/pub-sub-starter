@@ -20,7 +20,6 @@ func DeclareAndBind(
 	if err != nil {
 		return nil, amqp.Queue{}, err
 	}
-	defer channel.Close()
 
 	var durable bool
 	if queueType == 0 {

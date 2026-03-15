@@ -31,7 +31,7 @@ func SubscribeJSON[T any](
 			err := json.Unmarshal(message.Body, &target)
 			if err != nil {
 				log.Println(err)
-				return
+				continue
 			}
 			handler(target)
 			message.Ack(false)
