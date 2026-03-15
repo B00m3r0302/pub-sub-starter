@@ -23,18 +23,28 @@ func main() {
 	fmt.Println("Connected to RabbitMQ!")
 
 	username, err := gamelogic.ClientWelcome()
-
-	queueName := fmt.Sprintf("%s.%s", routing.PauseKey, username)
-
+	pauseQueueName := fmt.Sprintf("%s.%s", routing.PauseKey, username)
+	movesQueueName := fmt.Sprintf("%s.%s", routing.ArmyMovesPrefix, username)
 	gamestate := gamelogic.NewGameState(username)
 
-	handler := handlerPause(gamestate)
-	err = pubsub.SubscribeJSON(connection, routing.ExchangePerilDirect, queueName, routing.PauseKey, 1, handler)
+	pauseHandler := handlerPause(gamestate)
+	err = pubsub.SubscribeJSON(connection, routing.ExchangePerilDirect, pauseQueueName, routing.PauseKey, 1, pauseHandler)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
+	publishCh, err := connection.Channel()
+	if err != nil {
+		log.Println(err)
+	}
+
+	movesHandler := handlerMove(gamestate)
+	err = pubsub.SubscribeJSON(connection, routing.ExchangePerilTopic, movesQueueName, "army_moves.*", 1, movesHandler)
+	if err != nil {
+		log.Println(err)
+		return
+	}
 	for {
 		input := gamelogic.GetInput()
 
@@ -92,7 +102,15 @@ func main() {
 				continue
 			}
 
-			gamestate.CommandMove(input)
+			move, err := gamestate.CommandMove(input)
+			if err != nil {
+				log.Println(err)
+				continue
+			}
+
+			moveUsername := fmt.Sprintf("%s.%s", routing.ArmyMovesPrefix, move.Player.Username)
+			pubsub.PublishJSON(publishCh, routing.ExchangePerilTopic, moveUsername, move)
+			log.Println("move was published to RabbitMQ!", input)
 		case "status":
 			gamestate.CommandStatus()
 		case "help":
