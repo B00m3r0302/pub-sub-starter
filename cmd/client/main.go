@@ -39,8 +39,15 @@ func main() {
 		log.Println(err)
 	}
 
-	movesHandler := handlerMove(gamestate)
+	movesHandler := handlerMove(gamestate, publishCh)
 	err = pubsub.SubscribeJSON(connection, routing.ExchangePerilTopic, movesQueueName, "army_moves.*", 1, movesHandler)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+
+	warHandler := handlerWar(gamestate)
+	err = pubsub.SubscribeJSON(connection, routing.ExchangePerilTopic, routing.WarRecognitionsPrefix, routing.WarRecognitionsPrefix+".*", 0, warHandler)
 	if err != nil {
 		log.Println(err)
 		return
