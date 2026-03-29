@@ -46,7 +46,7 @@ func main() {
 		return
 	}
 
-	warHandler := handlerWar(gamestate)
+	warHandler := handlerWar(gamestate, publishCh)
 	err = pubsub.SubscribeJSON(connection, routing.ExchangePerilTopic, routing.WarRecognitionsPrefix, routing.WarRecognitionsPrefix+".*", 0, warHandler)
 	if err != nil {
 		log.Println(err)
