@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
-	"os/signal"
 
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/gamelogic"
 	"github.com/bootdotdev/learn-pub-sub-starter/internal/pubsub"
@@ -35,13 +33,10 @@ func main() {
 	}
 	defer mainChannel.Close()
 
-	topicChannel, topicQueue, err := pubsub.DeclareAndBind(connection, routing.ExchangePerilTopic, routing.GameLogSlug, routing.LogsKey, 0)
+	err = pubsub.SubscribeGob(connection, routing.ExchangePerilTopic, routing.GameLogSlug, routing.GameLogSlug+".*", pubsub.SimpleQueueType(0), HandlerLogs())
 	if err != nil {
 		log.Println(err)
-		return
 	}
-
-	log.Printf("connected to queue: %v on channel: %v", topicQueue.Name, topicChannel)
 
 	for {
 		input := gamelogic.GetInput()
@@ -61,9 +56,4 @@ func main() {
 			log.Println("Invalid command.")
 		}
 	}
-
-	// wait for ctrl+c
-	signalChan := make(chan os.Signal, 1)
-	signal.Notify(signalChan, os.Interrupt)
-	<-signalChan
 }
